@@ -32,10 +32,11 @@ server.set('port', port);
     console.log(data);
 });*/
 
-var fileNames = [
-    {name:'products' , path:'./data-source/products.txt'},
-    {name:'listings' , path:'./data-source/listings.txt'}
-];
+var fileNames = {
+    products:{name:'products' , path : '../data-source/products.txt'},
+    listings:{name:'listings' , path:'../data-source/listings.txt'},
+    result:{name:'result' , path:'../data-source/result.txt'}
+};
 
 var sortableUtil = require('./business-logic.model')(fileNames, fs, async);//Define All routes here
 

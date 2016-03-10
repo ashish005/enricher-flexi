@@ -13,20 +13,44 @@ module.exports = (function(fileNames, fs, async) {
         });
     };
 
+    function permutations(str){
+        var arr = str.split(' ').filter(function(n){ return n.length > 0}),
+            len = arr.length,
+            perms = [],
+            rest,
+            picked,
+            restPerms,
+            next;
+
+        if (len == 0)
+            return [str];
+
+        for (var i=0; i<len; i++)
+        {
+            rest = Object.create(arr);
+            picked = rest.splice(i, 1);
+
+            restPerms = permutations(rest.join(' '));
+
+            for (var j=0, jLen = restPerms.length; j< jLen; j++)
+            {
+                next = picked.concat(restPerms[j]);
+                perms.push(next.join(' ').trim());
+            }
+        }
+        return perms;
+    }
+
     function createFilterKeys(productKeys){
-        var keyList = [],_key =  productKeys['product_name'].replace(new RegExp('_', 'g'), ' ');
-        keyList.push(_key);
-        var splitData = productKeys['product_name'].split('_');//TODO : Combination logic for creating multiple string
-        return keyList;
+        /*var keyList = [],_key =  productKeys['product_name'].replace(new RegExp('_', 'g'), ' ');
+        keyList.push(_key);*/
+        var _prod = productKeys['product_name'].split('_');
+        var splitData = permutations(_prod.join(' '));//TODO : Combination logic for creating multiple string
+        return splitData;
     }
 
     Array.prototype.groupObjectByCommonKey = function(productKeys) {
-        //var _prodName = productKeys['product_name'];
-        //var _prodName = productKeys['product_name'].replace(new RegExp('_', 'g'), ' ');
-        //var _prodName = ['Casio Exilim EX-FC150' ,  'Casio EX-FC150' , 'Exilim EX-FC150' , 'Casio EX-FC150'];
         var _prodName = createFilterKeys(productKeys);
-        //productKeys['product_name'].split('_');//Other Possible options
-
         var _familyName = undefined;// productKeys['family']; //Apply optional family key filter
         if(_familyName) {
             _familyName = _familyName.replace(new RegExp('_', 'g'), ' ');
@@ -57,9 +81,9 @@ module.exports = (function(fileNames, fs, async) {
     sortableUtil.exec = function(callback){
         var dataModel = {};
         console.log('Command Started');
-        readFileData('./data-source/products.txt', function(productsData){
+        readFileData(fileNames['products']['path'], function(productsData){
             dataModel['products'] = productsData;
-            readFileData('./data-source/listings.txt', function(listingsData) {
+            readFileData(fileNames['listings']['path'], function(listingsData) {
                 dataModel['listings'] = listingsData;
                 sortableUtil.getResultantObject(dataModel['products'], dataModel['listings']);
             });
@@ -68,7 +92,7 @@ module.exports = (function(fileNames, fs, async) {
 
      sortableUtil.getResultantObject = function(primaryObj, nestedArrayIn) {
          //var _resultantArray = [];
-         var wstream = fs.createWriteStream('./data-source/result.txt' ,  {flags: 'w', encoding: 'utf-8'});
+         var wstream = fs.createWriteStream(fileNames['result']['path'],  {flags: 'w', encoding: 'utf-8'});
          primaryObj.forEach(function(data, val){
              if(data) {
                  var _parsedData = JSON.parse(data);

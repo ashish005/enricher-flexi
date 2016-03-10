@@ -5,6 +5,7 @@
     /*$.pluck = function(arr, key) {
         return $.map(arr, function(e) { return e[key]; })
     }*/
+/*
 
     Array.prototype.groupObjectByCommonKey = function(key) {
        //return $.pluck(this, key);
@@ -72,7 +73,7 @@
             //model":"DSC-W310","family":"Cyber-shot
             var _obj = {}
             _obj['product_name'] = data['product_name']; //Primary Key
-            /*_obj['product_name1'] = data;*/
+            /!*_obj['product_name1'] = data;*!/
             _obj['listings'] =  searchMatchingItems(_ops.matchedArray(groupedItem, commonKeys[0], _filter), filterText);
             _resultantArray.push(_obj);
         });
@@ -81,9 +82,30 @@
         return _resultantArray;
     }
 
+
+
+    var headers = {
+        "Accept": "application/json;charset=utf-8",
+        "Accept-Charset":"charset=utf-8"
+        //'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    };
+*/
+
+
+    function FileHelper() {};
+    FileHelper.readStringFromFileAtPath = function(pathOfFileToReadFrom)
+    {
+        var request = new XMLHttpRequest();
+        request.open("GET", pathOfFileToReadFrom, false);
+        request.send(null);
+        var returnValue = request.responseText;
+
+        return returnValue.split('\n');;
+    };
+
     function saveTextAsFile(data, filename)
     {
-            var blob = new Blob([data], {type: 'text/csv'});
+        var blob = new Blob([data], {type: "text/json;charset=utf-8"});
         if(window.navigator.msSaveOrOpenBlob) {
             window.navigator.msSaveBlob(blob, filename);
         }
@@ -96,20 +118,21 @@
             document.body.removeChild(elem);
         }
     }
-    function mainController($scope, $rootScope, $http, $location, commonSvc) {
+    function mainController($scope, $rootScope, $http, $location, $q, commonSvc) {
         $scope.initMain = function() {
-            var arr = [
-                $http({ method: 'GET', url: 'data-source/products.json' }),
-                $http({ method: 'GET', url: 'data-source/listings.json' })
-            ];
+            var products = FileHelper.readStringFromFileAtPath ('../data-source/products.txt');
+            var listings = FileHelper.readStringFromFileAtPath ('../data-source/listings.txt');
+           var logic = new Worker("business-logic.model.js");
+            // Setup an event listener that will handle messages received from the worker.
+            logic.addEventListener('message', function(e) {
+                saveTextAsFile(e.data, 'shortableResponse');
+            }, false);
+            logic.postMessage({products:products, listings:listings});
 
-            commonSvc.parallelGet(arr).then(function(resp){
-                 getResultantObject(resp[0], resp[1], $scope.resp = []); // Perform all permutaion and combination
-            }, function(error){
-                console.log(error);
-            })
         };
     }
+
+
 
     function commonService($http, $q) {
         var commonSvc = {};
@@ -129,7 +152,7 @@
         return commonSvc;
     }
     app
-        .controller('mainController', ['$scope', '$rootScope', '$http', '$location', 'commonService', mainController])
+        .controller('mainController', ['$scope', '$rootScope', '$http', '$location', '$q', 'commonService', mainController])
         .service('commonService', ['$http', '$q', commonService])
 
 })(window);
