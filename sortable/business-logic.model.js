@@ -1,15 +1,6 @@
 /**
  * Created by wizdev on 3/11/2016.
  */
-function createFilterKeys(productKeys){
-   /* var keyList = [],_key =  productKeys['product_name'].replace(new RegExp('_', 'g'), ' ');
-    keyList.push(_key);
-    var splitData = productKeys['product_name'].split('_');//TODO : Combination logic for creating multiple string
-    return keyList;*/
-    var _prod = productKeys['product_name'].split('_');
-    var splitData = permutations(_prod.join(' '));//TODO : Combination logic for creating multiple string
-    return splitData;
-}
 function permutations(str){
     var arr = str.split(' ').filter(function(n){ return n.length > 0}),
         len = arr.length,
@@ -31,12 +22,27 @@ function permutations(str){
 
         for (var j=0, jLen = restPerms.length; j< jLen; j++)
         {
-            next = picked.concat(restPerms[j]);
-            perms.push(next.join(' ').trim());
+            if(restPerms[j].split(' ').filter(function(n){ return n.length > 0}).length==2){
+                //next = picked.concat(restPerms[j]);
+                perms.push(restPerms[j].trim().toLowerCase());
+            }else{
+                next = picked.concat(restPerms[j]);
+                perms.push(next.join(' ').trim().toLowerCase());
+            }
+
         }
     }
     return perms;
 }
+
+function createFilterKeys(productKeys){
+    /*var keyList = [],_key =  productKeys['product_name'].replace(new RegExp('_', 'g'), ' ');
+     keyList.push(_key);*/
+    var _prod = productKeys['product_name'].split('_');
+    var splitData = permutations(_prod.join(' '));//TODO : Combination logic for creating multiple string
+    return splitData;
+}
+
 Array.prototype.groupObjectByCommonKey = function(productKeys) {
     var _prodName = createFilterKeys(productKeys);
     var _familyName = undefined;// productKeys['family']; //Apply optional family key filter

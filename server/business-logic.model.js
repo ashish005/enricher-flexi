@@ -34,8 +34,14 @@ module.exports = (function(fileNames, fs, async) {
 
             for (var j=0, jLen = restPerms.length; j< jLen; j++)
             {
-                next = picked.concat(restPerms[j]);
-                perms.push(next.join(' ').trim());
+                if(restPerms[j].split(' ').filter(function(n){ return n.length > 0}).length==2){
+                    //next = picked.concat(restPerms[j]);
+                    perms.push(restPerms[j].trim().toLowerCase());
+                }else{
+                    next = picked.concat(restPerms[j]);
+                    perms.push(next.join(' ').trim().toLowerCase());
+                }
+
             }
         }
         return perms;
